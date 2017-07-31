@@ -68,6 +68,16 @@ export default class Response extends React.Component {
     let { inferSchema } = fn
     let { isOAS3 } = specSelectors
 
+    let schema = inferSchema(response.toJS())
+    let orderedSchema = fromJS(
+      schema,
+      function (key, value, path) {
+        // Preserve field order.
+        // See https://facebook.github.io/immutable-js/docs/#/fromJS
+        return ((!!(value && value['@@__IMMUTABLE_INDEXED__@@'])) ?
+          value.toList() : value.toOrderedMap())
+      }
+    )
     let headers = response.get("headers")
     let examples = response.get("examples")
     let links = response.get("links")
@@ -112,7 +122,7 @@ export default class Response extends React.Component {
             <ModelExample
               getComponent={ getComponent }
               specSelectors={ specSelectors }
-              schema={ fromJS(schema) }
+              schema={ orderedSchema }
               example={ example }/>
           ) : null}
 
